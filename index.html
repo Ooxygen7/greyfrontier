@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>灰色边境 | 官方网站 V5.9 (最终版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- GSAP Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Oswald:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- 全局与字体设定 --- */
+        :root {
+            --color-union-red: #B91C1C; /* 更深的朱红色 */
+            --color-union-red-glow: rgba(217, 68, 64, 0.7);
+            --color-community-cyan: #3A7CA5; /* 暗蓝色 */
+            --color-community-cyan-darker: #2f6a8e;
+            --color-neutral-yellow: #ffc700;
+        }
+        /* 桌面端默认禁用滚动条 */
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #050505;
+            color: #c7c7c7;
+        }
+        .font-oswald { font-family: 'Oswald', sans-serif; }
+
+        /* --- 主容器和模块布局 (桌面) --- */
+        #main-container {
+            height: 100%;
+            width: 100%;
+            position: relative;
+            z-index: 10; /* 确保内容在背景之上 */
+        }
+        .snap-section {
+            position: absolute; /* 核心：所有模块绝对定位，堆叠在一起 */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+            visibility: hidden; /* 初始隐藏 */
+        }
+        .snap-section.active {
+            visibility: visible;
+        }
+        
+        .section-content-wrapper {
+            width: 100%;
+        }
+
+        /* --- 加载动画 --- */
+        #loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050505; z-index: 1000; display: flex;
+            align-items: center; justify-content: center; transition: opacity 0.5s ease-out;
+        }
+        .loader-content { text-align: center; color: white; }
+        .loader-logo { font-family: 'Oswald', sans-serif; font-size: 3rem; letter-spacing: 0.5em; }
+        .progress-bar { width: 0; height: 2px; background: var(--color-union-red); transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1); }
+
+        /* --- 静态噪点与扫描线效果 --- */
+        .overlay-effects {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 999;
+        }
+        .static-noise {
+            width: 100%; height: 100%;
+            background-image: url('https://www.transparenttextures.com/patterns/black-felt.png');
+            opacity: 0.04;
+        }
+        .scanline {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(255,255,255,0.02) 51%, rgba(255,255,255,0) 100%);
+            background-size: 100% 4px; animation: scan 10s linear infinite;
+        }
+        @keyframes scan {
+            from { background-position-y: 0; }
+            to { background-position-y: 400px; }
+        }
+
+        /* --- 导航栏 --- */
+        #main-nav { 
+            transition: background-color 0.4s ease, transform 0.4s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(to bottom, rgba(5,5,5,0.6), rgba(5,5,5,0.1));
+            backdrop-filter: blur(8px);
+        }
+        #main-nav.nav-hidden { transform: translateY(-100%); }
+        .nav-logo { text-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+        .nav-link { position: relative; transition: color 0.3s ease; }
+        .nav-link::after {
+            content: ''; position: absolute; width: 0; height: 1px;
+            bottom: -4px; left: 50%; transform: translateX(-50%);
+            background-color: var(--color-union-red); transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        .nav-link.active { color: white; }
+
+        /* --- 主视觉区域 --- */
+        #hero-background-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: -1; }
+        #hero-background { width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); }
+        #hero-background-container::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at 50% 50%, rgba(5,5,5,0.2) 0%, rgba(5,5,5,0.95) 90%);
+        }
+        .glitch-title { text-shadow: 0 0 5px rgba(255,255,255,0.2); }
+        
+        #hero-red-line {
+            background: var(--color-union-red);
+            box-shadow: 0 0 10px var(--color-union-red-glow), 0 0 20px var(--color-union-red-glow);
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px var(--color-union-red-glow), 0 0 20px var(--color-union-red-glow); }
+            50% { box-shadow: 0 0 15px var(--color-union-red-glow), 0 0 30px var(--color-union-red-glow); }
+        }
+        
+        /* --- 阵营选择 --- */
+        #faction-section { display: flex; flex-direction: row; padding: 0; }
+        .faction-panel {
+            position: relative; overflow: hidden; display: flex; align-items: center;
+            justify-content: center; text-align: center; color: white;
+            width: 50%; height: 100%; background-size: cover; background-position: center;
+            transition: width 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .faction-panel::before {
+            content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.3);
+            transition: all 0.6s cubic-bezier(0.7, 0, 0.3, 1);
+        }
+        .faction-panel.union { background-image: url('https://images.unsplash.com/photo-1517997520499-80121a8a2c1f?q=80&w=1920&auto-format&fit=crop'); }
+        .faction-panel.community { background-image: url('https://images.unsplash.com/photo-1518083993243-6e47454363a2?q=80&w=1920&auto-format&fit=crop'); }
+        
+        .faction-content { position: relative; z-index: 10; transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.7s ease; }
+        .faction-details { max-height: 0; opacity: 0; transition: all 0.5s ease-out; overflow: hidden; }
+        
+        #faction-section.union-hover .faction-panel.union,
+        #faction-section.community-hover .faction-panel.community { width: 60%; }
+        #faction-section.union-hover .faction-panel.community,
+        #faction-section.community-hover .faction-panel.union { width: 40%; }
+        #faction-section.union-hover .faction-panel.union .faction-content,
+        #faction-section.community-hover .faction-panel.community .faction-content { transform: scale(1.1); }
+        #faction-section.union-hover .faction-panel.community .faction-content,
+        #faction-section.community-hover .faction-panel.union .faction-content { transform: scale(0.85); opacity: 0.6; }
+        #faction-section.union-hover .faction-panel.union .faction-details,
+        #faction-section.community-hover .faction-panel.community .faction-details { max-height: 300px; opacity: 1; margin-top: 1rem; }
+
+        /* --- 军备库 --- */
+        #armory-section { background: transparent; } /* 改为透明以显示背景 */
+        .armory-tab { transition: all 0.3s ease; border-bottom: 2px solid transparent; }
+        .armory-tab.active { color: white; border-bottom-color: var(--armory-accent-color, var(--color-union-red)); }
+        #armory-list-container { --armory-accent-color: var(--color-union-red); }
+        .armory-list-item { border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .armory-list-item-name { transition: all 0.2s ease; padding: 0.75rem 0.5rem; cursor: pointer; }
+        .armory-list-item-name:hover { background-color: rgba(255,255,255,0.05); }
+        .armory-list-item.active .armory-list-item-name { color: var(--armory-accent-color); }
+        .armory-list-item-desc {
+            max-height: 0; opacity: 0; overflow: hidden;
+            transition: max-height 0.4s ease-out, opacity 0.4s ease-out, padding 0.4s ease-out;
+            padding: 0 1rem; font-size: 0.9rem; color: #a0a0a0;
+        }
+        .armory-list-item.active .armory-list-item-desc { max-height: 200px; opacity: 1; padding: 0.5rem 1rem 1rem 1rem; }
+        #armory-list-container::-webkit-scrollbar { width: 4px; }
+        #armory-list-container::-webkit-scrollbar-track { background: transparent; }
+        #armory-list-container::-webkit-scrollbar-thumb { background-color: #374151; border-radius: 2px; }
+
+        /* --- 时间线 --- */
+        #timeline-section { background: #0a0a0a; }
+        #timeline-horizontal-container { padding-left: 10%; }
+        .timeline-ray-wrapper {
+            position: absolute; left: 0; width: 90%;
+            display: flex; align-items: center; cursor: pointer;
+        }
+        .timeline-ray {
+            height: 2px; background-color: var(--color-union-red);
+            box-shadow: 0 0 8px var(--color-union-red); width: 0;
+        }
+        .timeline-ray-event { opacity: 0; padding-left: 1rem; white-space: nowrap; }
+        .timeline-ray-wrapper:hover .timeline-ray-event p:first-child { color: white; }
+        .timeline-ray-wrapper .timeline-ray-event p { transition: color 0.3s ease; }
+
+        /* --- 权力机关 --- */
+        .agency-card { 
+            background: #111; border: 1px solid #222; 
+            transition: all 0.3s ease; position: relative; overflow: hidden;
+            cursor: pointer;
+        }
+        .agency-card:hover { border-color: var(--color-union-red); transform: translateY(-5px); }
+        .agency-card .agency-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.05; background-size: cover; transition: all 0.5s ease;
+        }
+        .agency-card:hover .agency-bg { opacity: 0.1; transform: scale(1.1); }
+
+        /* --- 开始模块 --- */
+        #start-section-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 200; visibility: hidden; opacity: 0;
+        }
+        #start-section { display: flex; flex-direction: row; padding: 0; height: 100%; }
+        .start-panel {
+            position: relative; overflow: hidden; display: flex; align-items: center;
+            justify-content: center; text-align: center; color: white; height: 100%;
+            transition: width 0.7s cubic-bezier(0.25, 0.8, 0.25, 1); width: 33.333%;
+        }
+        .start-panel:not(:last-child) { border-right: 2px solid black; }
+        .start-panel-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            transition: transform 0.7s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 0;
+        }
+        .start-panel::before {
+            content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.6);
+            transition: all 0.6s cubic-bezier(0.7, 0, 0.3, 1); z-index: 1;
+        }
+        .start-panel:hover::before { background: rgba(0,0,0,0.4); }
+        .panel-story .start-panel-bg { background-image: url('s1.png'); }
+        .panel-creator .start-panel-bg { background-image: url('s2.png'); }
+        .panel-dlc .start-panel-bg { background-image: url('s3.png'); }
+        
+        .start-content { position: relative; z-index: 2; transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .start-button {
+            opacity: 0; transform: translateY(10px); transition: all 0.5s ease 0.2s;
+            margin-top: 1.5rem; border: 2px solid white; background-color: transparent;
+            color: white; font-weight: bold; padding: 0.5rem 1.5rem;
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .start-button:hover { background-color: white; color: black; }
+        #start-section.story-hover .panel-story,
+        #start-section.creator-hover .panel-creator,
+        #start-section.dlc-hover .panel-dlc { width: 60%; }
+        #start-section.story-hover .panel-creator, #start-section.story-hover .panel-dlc,
+        #start-section.creator-hover .panel-story, #start-section.creator-hover .panel-dlc,
+        #start-section.dlc-hover .panel-story, #start-section.dlc-hover .panel-creator { width: 20%; }
+        #start-section.story-hover .panel-story .start-content,
+        #start-section.creator-hover .panel-creator .start-content,
+        #start-section.dlc-hover .panel-dlc .start-content { transform: scale(1.1); }
+        #start-section.story-hover .panel-story .start-button,
+        #start-section.creator-hover .panel-creator .start-button,
+        #start-section.dlc-hover .panel-dlc .start-button { opacity: 1; transform: translateY(0); }
+        #start-section.story-hover .panel-story .start-panel-bg,
+        #start-section.creator-hover .panel-creator .start-panel-bg,
+        #start-section.dlc-hover .panel-dlc .start-panel-bg { transform: scale(1.05); }
+        #back-to-main-btn {
+            position: absolute; top: 1.5rem; right: 1.5rem; z-index: 10;
+            color: white; font-size: 2.5rem; line-height: 1; cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        #back-to-main-btn:hover { transform: scale(1.2); }
+
+        /* --- Cookie Banner & Modal --- */
+        #cookie-consent-banner { border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            z-index: 1001; display: flex; align-items: center; justify-content: center;
+            visibility: hidden; opacity: 0; transition: visibility 0s 0.3s, opacity 0.3s ease;
+        }
+        #modal-overlay.visible { visibility: visible; opacity: 1; transition: visibility 0s, opacity 0.3s ease; }
+        #modal-content {
+            background-color: #0c0c0c; border: 1px solid var(--modal-color, #fff);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5); width: 90%; max-width: 800px;
+            max-height: 80vh; overflow-y: auto; position: relative;
+        }
+        #modal-close-btn {
+            position: absolute; top: 0; right: 0; padding: 1rem;
+            font-size: 2rem; line-height: 1; cursor: pointer;
+        }
+
+        /* --- 移动端适配样式 --- */
+        .is-mobile html, .is-mobile body {
+            overflow: initial;
+        }
+        .is-mobile #main-container {
+            height: auto;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            height: 100vh;
+        }
+        .is-mobile .snap-section {
+            position: relative;
+            visibility: visible;
+            height: 100vh;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            display: flex;
+            align-items: center;
+        }
+        .is-mobile #faction-section {
+            flex-direction: column;
+            height: auto;
+        }
+        .is-mobile .faction-panel {
+            width: 100%;
+            height: 50vh;
+        }
+        .is-mobile .faction-details {
+            max-height: 300px;
+            opacity: 1;
+            margin-top: 1rem;
+        }
+        .is-mobile #agencies-section .grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .is-mobile #agencies-section .agency-card {
+             padding: 1rem;
+        }
+        .is-mobile h1, .is-mobile h2, .is-mobile h3 {
+            text-align: center;
+        }
+        .is-mobile #hero-title {
+            font-size: 3.5rem;
+            line-height: 1.2;
+        }
+        .is-mobile .section-title {
+            font-size: 2.5rem;
+        }
+        .is-mobile #armory-list-container {
+            height: 65vh;
+        }
+        
+        /* 移动端返回顶部按钮 */
+        #mobile-back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 1.5rem;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            background-color: rgba(10, 10, 10, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 50%;
+            display: none; /* JS控制显示 */
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        .is-mobile #mobile-back-to-top {
+            display: flex;
+        }
+        #mobile-back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #mobile-back-to-top:hover {
+            background-color: var(--color-union-red);
+            border-color: var(--color-union-red);
+        }
+        #mobile-back-to-top svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* 移动端“加入”模块适配 */
+        .is-mobile #start-section {
+            flex-direction: column;
+        }
+        .is-mobile .start-panel {
+            width: 100%;
+            height: 33.333vh; /* 默认三等分 */
+            border-right: none;
+            border-bottom: 2px solid black;
+            transition: height 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .is-mobile .start-panel:last-child {
+            border-bottom: none;
+        }
+        .is-mobile #start-section.story-expanded .panel-story,
+        .is-mobile #start-section.creator-expanded .panel-creator,
+        .is-mobile #start-section.dlc-expanded .panel-dlc {
+            height: 60vh; /* 展开项变高 */
+        }
+        .is-mobile #start-section.story-expanded .panel-creator,
+        .is-mobile #start-section.story-expanded .panel-dlc,
+        .is-mobile #start-section.creator-expanded .panel-story,
+        .is-mobile #start-section.creator-expanded .panel-dlc,
+        .is-mobile #start-section.dlc-expanded .panel-story,
+        .is-mobile #start-section.dlc-expanded .panel-creator {
+            height: 20vh; /* 收起项变矮 */
+        }
+        .is-mobile #start-section.story-expanded .panel-story .start-button,
+        .is-mobile #start-section.creator-expanded .panel-creator .start-button,
+        .is-mobile #start-section.dlc-expanded .panel-dlc .start-button {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .is-mobile #start-section.story-expanded .panel-story .start-content,
+        .is-mobile #start-section.creator-expanded .panel-creator .start-content,
+        .is-mobile #start-section.dlc-expanded .panel-dlc .start-content {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="loader"><div class="loader-content"><div class="loader-logo">GREY FRONTIER</div><p class="mt-2 text-sm text-gray-400">正在建立安全连接...</p><div class="w-32 h-0.5 bg-gray-700 mx-auto mt-4"><div id="progress-bar" class="progress-bar"></div></div></div></div>
+    <div class="overlay-effects"><div class="static-noise"></div><div class="scanline"></div></div>
+
+    <nav id="main-nav" class="fixed top-0 left-0 w-full z-50">
+        <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center"><span class="nav-logo font-oswald text-3xl font-bold text-white tracking-widest">GREY FRONTIER</span></div>
+                <div class="hidden md:flex items-center space-x-8 text-sm uppercase tracking-wider">
+                    <a href="#hero" data-index="0" class="nav-link text-gray-300 hover:text-white">首页</a>
+                    <a href="#faction-section" data-index="1" class="nav-link text-gray-300 hover:text-white">阵营</a>
+                    <a href="#armory-section" data-index="2" class="nav-link text-gray-300 hover:text-white">军备</a>
+                    <a href="#timeline-section" data-index="3" class="nav-link text-gray-300 hover:text-white">历史</a>
+                    <a href="#agencies-section" data-index="4" class="nav-link text-gray-300 hover:text-white">权力</a>
+                    <a href="#footer" data-index="5" class="nav-link text-gray-300 hover:text-white">加入</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 背景容器 -->
+    <div id="armory-gif-background" class="fixed top-0 left-0 w-full h-full pointer-events-none z-[1] opacity-0 transition-opacity duration-500">
+        <img src="junbei.gif" class="w-full h-full object-cover" alt="Armory Background" onerror="this.style.display='none'">
+    </div>
+    <div id="faction-gif-background-empty" class="fixed top-0 left-0 w-full h-full pointer-events-none z-[2] opacity-0 transition-opacity duration-300">
+        <img src="" class="w-full h-full object-cover" alt="Empty Company Background" onerror="this.style.display='none'">
+    </div>
+    <div id="faction-gif-background-union" class="fixed top-0 left-0 w-full h-full pointer-events-none z-[3] opacity-0 transition-opacity duration-300">
+        <img src="redflag.gif" class="w-full h-full object-cover" alt="Union Flag Background" onerror="this.style.display='none'">
+    </div>
+    <div id="faction-gif-background-community" class="fixed top-0 left-0 w-full h-full pointer-events-none z-[3] opacity-0 transition-opacity duration-300">
+        <img src="blueflag.gif" class="w-full h-full object-cover" alt="Community Flag Background" onerror="this.style.display='none'">
+    </div>
+
+    <div id="main-container">
+        <header id="hero" class="snap-section relative w-full flex items-center justify-center text-center">
+            <div id="hero-background-container">
+                <img src="main.gif" id="hero-background" alt="Background animation" onerror="this.onerror=null;this.src='https://placehold.co/1920x1080/050505/222222?text=Background+Error';">
+            </div>
+            <div class="section-content-wrapper relative z-10 px-4">
+                <div class="relative">
+                    <h1 id="hero-title" class="font-oswald text-6xl md:text-8xl lg:text-9xl font-extrabold text-white uppercase tracking-wider glitch-title relative z-10">
+                        <span class="block md:inline">停火线</span>
+                        <span class="block md:inline">即是前线</span>
+                    </h1>
+                </div>
+                <p id="hero-subtitle" class="text-gray-300 mt-4 text-lg md:text-xl max-w-3xl mx-auto">最终战争没有胜利者。两大幸存的国家集团在一片焦土上对峙，将一场毁灭性的全面战争，转变为一场持续数十年的、无处不在的低烈度消耗战。</p>
+            </div>
+            <div id="hero-red-line" class="absolute left-0 top-1/2 -translate-y-1/2 h-[10px] w-0 z-0">
+            </div>
+        </header>
+
+        <section id="faction-section" class="snap-section">
+            <div class="section-content-wrapper w-full h-full flex flex-col md:flex-row">
+                 <div class="faction-panel union">
+                    <div class="faction-content p-8">
+                        <div class="faction-logo">
+                            <img src="logo1.png" alt="索切科契联盟 Logo" class="w-40 h-40 md:w-56 md:h-56 mx-auto object-contain" onerror="this.onerror=null;this.src='https://placehold.co/224x224/c81e1e/ffffff?text=Logo';">
+                        </div>
+                        <div class="faction-details">
+                            <h2 class="font-oswald text-3xl md:text-5xl font-bold uppercase tracking-wider mb-2 md:mb-4">索切科契联盟</h2>
+                            <p class="text-gray-300 max-w-md mx-auto text-sm md:text-base">一个由中央计划委员会统一协调关键工业的高度集权体制。</p>
+                            <button id="union-archive-btn" class="mt-4 md:mt-6 border-2 border-[var(--color-union-red)] text-[var(--color-union-red)] font-bold py-2 px-6 rounded-sm uppercase tracking-wider hover:bg-[var(--color-union-red)] hover:text-white transition-colors duration-300">查看档案</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="faction-panel community">
+                    <div class="faction-content p-8">
+                        <div class="faction-logo">
+                            <img src="logo2.png" alt="海洋联合共同体 Logo" class="w-40 h-40 md:w-56 md:h-56 mx-auto object-contain" onerror="this.onerror=null;this.src='https://placehold.co/224x224/00d1ff/ffffff?text=Logo';">
+                        </div>
+                        <div class="faction-details">
+                            <h2 class="font-oswald text-3xl md:text-5xl font-bold uppercase tracking-wider mb-2 md:mb-4">海洋联合共同体</h2>
+                            <p class="text-gray-300 max-w-md mx-auto text-sm md:text-base">由多个主权国家组成的松散军事经济同盟。</p>
+                            <button id="community-archive-btn" class="mt-4 md:mt-6 border-2 border-[var(--color-community-cyan)] text-[var(--color-community-cyan)] font-bold py-2 px-6 rounded-sm uppercase tracking-wider hover:bg-[var(--color-community-cyan)] hover:text-white transition-colors duration-300">访问数据库</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="armory-section" class="snap-section px-4">
+            <div class="section-content-wrapper max-w-screen-xl mx-auto w-full relative">
+                <h2 class="section-title font-oswald text-5xl font-bold text-center border-gray-700">军备库</h2>
+                <div class="flex justify-center my-6 space-x-8">
+                    <button class="armory-tab active" data-faction="union" style="--armory-accent-color: var(--color-union-red);">联盟</button>
+                    <button class="armory-tab" data-faction="community" style="--armory-accent-color: var(--color-community-cyan);">共同体</button>
+                </div>
+                <div id="armory-list-container" class="bg-black/50 p-4 overflow-y-auto h-[60vh] w-full md:w-3/4 mx-auto">
+                    <div id="armory-list">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="timeline-section" class="snap-section px-4">
+            <div class="section-content-wrapper max-w-screen-lg mx-auto w-full">
+                <h2 class="section-title font-oswald text-5xl font-bold text-center border-gray-700">战争之路</h2>
+                <p class="text-center mt-4 text-gray-400 max-w-2xl mx-auto">从旧世界的余烬到漫长对峙的开端。</p>
+                <div id="timeline-horizontal-container" class="relative w-full h-[60vh] mt-12">
+                </div>
+            </div>
+        </section>
+
+        <section id="agencies-section" class="snap-section bg-black px-4">
+            <div class="section-content-wrapper max-w-screen-xl mx-auto w-full">
+                <h2 class="section-title font-oswald text-5xl font-bold text-center border-gray-700">阴影中的权力</h2>
+                <p class="text-center mt-4 text-gray-400 max-w-2xl mx-auto">战争不仅在边境线上进行。</p>
+                <div class="mt-8"><h3 class="font-oswald text-2xl md:text-3xl font-bold text-center text-[var(--color-union-red)]">索切科契联盟机构</h3><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+                    <div class="agency-card p-6" data-agency-id="union-9th"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">人民委员会第9局</h4><p class="text-sm italic text-gray-500 my-1">9th Directorate</p><p class="text-sm mt-2 text-gray-400">对内安全与纪律监督机构。</p></div>
+                    <div class="agency-card p-6" data-agency-id="union-eog"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">对外行动处</h4><p class="text-sm italic text-gray-500 my-1">External Operations Group</p><p class="text-sm mt-2 text-gray-400">负责对外情报、颠覆和特别行动。</p></div>
+                    <div class="agency-card p-6" data-agency-id="union-gosplan"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">GOSPLAN</h4><p class="text-sm italic text-gray-500 my-1">State Planning Committee</p><p class="text-sm mt-2 text-gray-400">联盟的经济大脑，负责所有生产计划。</p></div>
+                    <div class="agency-card p-6" data-agency-id="union-glavlit"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">GLAVLIT</h4><p class="text-sm italic text-gray-500 my-1">Main Administration for Literary Affairs</p><p class="text-sm mt-2 text-gray-400">意识形态的守护者，负责审查。</p></div>
+                </div></div>
+                <div class="mt-8"><h3 class="font-oswald text-2xl md:text-3xl font-bold text-center text-[var(--color-community-cyan)]">海洋联合共同体机构</h3><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+                    <div class="agency-card p-6" data-agency-id="comm-cid" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">共同情报局 (CID)</h4><p class="text-sm italic text-gray-500 my-1">Common Intelligence Directorate</p><p class="text-sm mt-2 text-gray-400">共同体的中央情报机构。</p></div>
+                    <div class="agency-card p-6" data-agency-id="comm-black-sail" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">黑帆公司</h4><p class="text-sm italic text-gray-500 my-1">Black Sail Inc.</p><p class="text-sm mt-2 text-gray-400">私营军事承包商，执行“脏活”。</p></div>
+                    <div class="agency-card p-6" data-agency-id="comm-tses" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">TSES</h4><p class="text-sm italic text-gray-500 my-1">Transnational Strategic Economic Service</p><p class="text-sm mt-2 text-gray-400">共同体的经济战矛头。</p></div>
+                    <div class="agency-card p-6" data-agency-id="comm-adrpa" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">ADRPA</h4><p class="text-sm italic text-gray-500 my-1">Advanced Defense Research Projects Agency</p><p class="text-sm mt-2 text-gray-400">技术优势引擎，负责军事科技研发。</p></div>
+                </div></div>
+            </div>
+        </section>
+        
+        <footer id="footer" class="snap-section bg-black text-center">
+            <div class="section-content-wrapper max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h3 class="font-oswald text-3xl md:text-4xl font-bold text-white">
+                    <span class="block">战争永不改变</span>
+                    <span class="block">你的选择，</span>
+                    <span class="block">将决定它的形态。</span>
+                </h3>
+                <div class="mt-8"><button id="show-start-section-btn" class="inline-block border border-white text-white font-bold py-3 px-8 rounded-sm uppercase tracking-wider transition-colors duration-300 hover:bg-white hover:text-black">立刻加入</button></div>
+                <div class="mt-12 text-gray-500 text-sm">
+                    <p>&copy; 2025 GREY FRONTIER. All Rights Reserved.</p>
+                    <p class="mt-1">本游戏内容纯属虚构。</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 移动端返回顶部按钮 -->
+    <button id="mobile-back-to-top" class="mobile-nav-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+        </svg>
+    </button>
+
+    <div id="start-section-container">
+        <div id="back-to-main-btn">&times;</div>
+        <section id="start-section">
+            <div class="section-content-wrapper w-full h-full flex flex-col md:flex-row">
+                 <div class="start-panel panel-story">
+                    <div class="start-panel-bg" onerror="this.style.backgroundImage='url(https://placehold.co/800x1200/1a1a1a/333333?text=s1.png)'"></div>
+                    <div class="start-content p-8">
+                        <h2 class="font-oswald text-3xl md:text-5xl font-bold uppercase tracking-wider mb-4">游玩故事线</h2>
+                        <p class="text-gray-300 max-w-md mx-auto">深入灰色边境，体验主线剧情，揭开战争背后的秘密。</p>
+                        <button class="start-button">选择</button>
+                    </div>
+                </div>
+                <div class="start-panel panel-creator">
+                    <div class="start-panel-bg" onerror="this.style.backgroundImage='url(https://placehold.co/800x1200/1a1a1a/333333?text=s2.png)'"></div>
+                    <div class="start-content p-8">
+                        <h2 class="font-oswald text-3xl md:text-5xl font-bold uppercase tracking-wider mb-4">创作者支持</h2>
+                        <p class="text-gray-300 max-w-md mx-auto">支持您喜爱的创作者，获取他们制作的独家游戏内容。</p>
+                        <button class="start-button">浏览</button>
+                    </div>
+                </div>
+                 <div class="start-panel panel-dlc">
+                    <div class="start-panel-bg" onerror="this.style.backgroundImage='url(https://placehold.co/800x1200/1a1a1a/333333?text=s3.png)'"></div>
+                    <div class="start-content p-8">
+                        <h2 class="font-oswald text-3xl md:text-5xl font-bold uppercase tracking-wider mb-4">定购支线剧情</h2>
+                        <p class="text-gray-300 max-w-md mx-auto">购买额外的故事章节，探索世界中更多不为人知的故事。</p>
+                        <button class="start-button">查看</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="cookie-consent-banner" class="fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-sm p-4 text-center text-sm text-gray-300 transform translate-y-full transition-transform duration-500 ease-in-out z-[1001]">
+        <p>我们使用cookies来确保您获得最佳体验。
+            <button id="cookie-agree-btn" class="ml-4 bg-transparent border border-gray-500 text-gray-400 px-4 py-1 rounded-sm hover:bg-white hover:text-black transition-colors">我已知晓</button>
+        </p>
+    </div>
+
+    <div id="modal-overlay">
+        <div id="modal-content" class="p-8 relative">
+            <div class="overlay-effects" style="z-index: 1;">
+                <div class="static-noise" style="opacity: 0.08;"></div>
+                <div class="scanline"></div>
+            </div>
+            <div id="modal-close-btn" class="text-gray-500 hover:text-white transition-colors z-10">
+                <span class="block w-full h-full">&times;</span>
+            </div>
+            <div id="modal-body" class="relative z-20">
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    // --- UA检测 ---
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+        document.body.classList.add('is-mobile');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- 通用数据 ---
+        const armoryData = { union: { "陆军装备": [{ name: `T-82 "野牛" 主战坦克`, desc: `皮实、廉价、易于量产。装甲厚重，但火控系统粗糙，依赖数量优势进行集团冲锋。` },{ name: `T-84 "堡垒" 重型坦克`, desc: `野牛的放大版，速度缓慢但正面装甲几乎无法被击穿。通常用于攻坚战，是移动的钢铁壁垒。` },{ name: `BMP-90 "冲锋" 履带式步兵战车`, desc: `能搭载一个步兵班，火力凶猛但防护薄弱，旨在快速将步兵投送到前线。` },{ name: `S-19 "冰雹" 152毫米自行榴弹炮`, desc: `射程远，威力大，但装填速度慢，机动性差，需要严密保护。` }], "空军装备": [{ name: `SW-30 "利刃" 双发重型制空战斗机`, desc: `机动性强，雷达功率大，专为在广阔的边境上空夺取制空权而设计。` },{ name: `SA-12 "白嘴鸦" 亚音速重甲攻击机`, desc: `专为低空近距离支援设计，能承受大量轻武器的伤害的同时俯冲撕裂敌方阵地，又被称为“开罐器”。` },{ name: `Te-200 "惩罚者" 远程亚音速轰炸机`, desc: `能携带大量常规炸弹或远程巡航导弹，是联盟的战略威慑力量。` }], "海军装备": [{ name: `"警戒" 级导弹巡洋舰`, desc: `装备了大量反舰导弹的重型水面舰艇，负责守卫联盟的近海防线。` },{ name: `"梭鱼" 级攻击核潜艇`, desc: `深潜、静音的核潜艇，如同深海中的幽灵，专门用于切断共同体的海上贸易生命线。` }], "单兵装备": [{ name: `KZ-85卡宾枪`, desc: `全自动步枪，结构简单，冲压机匣，在任何恶劣环境下都极其可靠，但精度一般。` },{ name: `D86轻机枪`, desc: `使用弹鼓供弹，为步兵班提供持续的火力压制手段。长时间射击易使枪管过热极大降低性能，需冷却后再使用。` },{ name: `RPG-7 "穿刺者"`, desc: `简单、廉价的无制导火箭筒，需要射手靠近目标才能保证命中率，通常采用饱和攻击战术。` },{ name: `"信号旗" 便携式干扰器`, desc: `笨重的背负式电子战设备，能有效压制小范围内的敌方通讯和电子信号。` },{ name: `"鼹鼠" 复合钻地炸药`, desc: `能以较低噪音钻入混凝土工事内部引爆，彻底摧毁目标或为突击队打开通路。` }] }, community: { "陆军装备": [{ name: `C-8 "骏马" 主战坦克`, desc: `高性能但昂贵的坦克。拥有先进的火控系统和复合装甲，强调单车的生存性和精确打击能力。维护复杂，产量较低。` },{ name: `IFV-10 "战马" 步兵战车`, desc: `拥有先进的传感器，能与“骏马”坦克协同作战，正面装甲厚重。也正因如此，其速度并不比骏马坦克快多少。` },{ name: `M-12 "投石索" 坦克歼击车`, desc: `拥有自动装弹机和先进的火控系统，标配105毫米滑膛炮。缺点乘员舱过大挤压弹舱导致载弹量较小。` }], "空军装备": [{ name: `AF-21 "猎隼" 单发多用途战斗机`, desc: `速度快，功能全面，能执行空战、对地攻击和侦察等多种任务。` },{ name: `A-15 "屠夫" 高亚音速攻击机`, desc: `载弹量大，拥有先进的精确制导武器，能在防区外发动致命打击。机炮射速极快但精度不高。` },{ name: `B-5 "深海蟹" 隐形轰炸机`, desc: `采用隐形设计的洲际轰炸机，用于对高价值目标进行外科手术式打击。` }], "海军装备": [{ name: `"无畏" 级航空母舰`, desc: `共同体全球力量投射的核心，能搭载一支强大的舰载机联队，是契约组织海军的首要目标。` },{ name: `"海啸" 级攻击核潜艇`, desc: `技术先进的攻击核潜艇，既能反潜，也能发射巡航导弹攻击陆地目标。` },{ name: `"神盾" 级导弹巡洋舰`, desc: `航母战斗群的保护核心。装备了最先进的相控阵雷达和垂直发射系统，负责拦截饱和导弹攻击，价格极其昂贵。` },{ name: `"短剑" 轻型攻击艇`, desc: `高速、隐形的攻击巡逻艇，用于在近海或大规模作战时执行快速打击和特种作战支援任务。` }], "单兵装备": [{ name: `R-15制式步枪`, desc: `全自动步枪，采用模块化设计，精度极高，但对保养要求苛刻，在边境的泥泞中故障率较高。` },{ name: `M-25班用自动武器`, desc: `弹匣供弹的轻机枪，射速快，重量轻，枪管可快拆。` },{ name: `AIM-8 "猎手" 反坦克导弹`, desc: `"发射后不管"的智能导弹，能自动攻击装甲车脆弱的顶部装甲，但价格昂贵，装备数量有限。` },{ name: `"百眼巨人" 榴弹发射器`, desc: `榴弹爆炸后以极强压力爆射出巨量碎片，对附近大范围步兵造成致命或致残打击。可随时更换弹种。` },{ name: `"幽灵" 光学迷彩服`, desc: `由黑帆公司精英特工使用，能动态模拟环境光线与纹理，极大降低被目视发现的概率。耗电量较高且光学回路复杂，无法长时间保持开启。` }] } };
+        const factionInfo = { union: { title: "索切科契联盟", logo: "logo1.png", color: "var(--color-union-red)", content: `<h3 class="font-oswald text-2xl font-bold mb-4">政治体制：指导性国家辛迪加主义</h3><p class="text-gray-400 mb-6">一个由中央计划委员会统一协调关键工业（能源、制造、农业）的高度集权体制。其官僚体系庞大、僵化，强调稳定与可预测性，牺牲了效率与创新。</p><h3 class="font-oswald text-2xl font-bold mb-4">社会形态：集体主义</h3><p class="text-gray-400">个人价值由其在国家机器中的功能性决定。社会福利系统完备，覆盖公民的一生。个人选择权被极大的压缩，社会氛围压抑、单调，但拥有强大的工业动员能力和内部凝聚力。首都是大陆心脏地带的工业重镇“马格尼托格勒”。</p>` }, community: { title: "海洋联合共同体", logo: "logo2.png", color: "var(--color-community-cyan)", content: `<h3 class="font-oswald text-2xl font-bold mb-4">政治体制：军事贸易联盟</h3><p class="text-gray-400 mb-6">由多个主权国家组成的松散军事经济同盟，由最强大的沿海共和国"维尔利亚"主导。核心是确保海上贸易路线安全和市场开放。内部政治斗争激烈，大型跨国公司和军事承包商拥有巨大影响力。</p><h3 class="font-oswald text-2xl font-bold mb-4">社会形态：资本主义</h3><p class="text-gray-400">市场决定社会运转，宣传个人自由与机会。社会阶级固化，贫富差距巨大。文化多元但碎片化，充满活力但缺乏长远规划和统一意志。联盟总部位于沿海的国际贸易中心“自由港”。</p>` } };
+        const timelineData = [ { period: "停火协议", title: "最终战争结束", details: "两大幸存的国家集团在一片焦土上签署协议，毁灭性的全面战争结束。然而，这并非和平的开端，而是另一种战争的序幕。", progress: 10, icon: `<svg viewBox="0 0 24 24"><path d="M14.06 9.02l.92.92L5.92 19H5v-.92l9.06-9.06M17.66 3c-.25 0-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.2-.2-.45-.29-.71-.29zm-3.6 3.19L3 17.25V21h3.75L17.81 9.94l-3.75-3.75z"></path></svg>` }, { period: "停火后2年", title: "“灰色边境”形成", details: "长达数千公里的非军事区被建立，从北方的寒带森林延伸至南方沙漠。它迅速成为高度军事化的对峙线，充满了哨站、雷区和无人机。", progress: 28, icon: `<svg viewBox="0 0 24 24"><path d="M22 11v9h-2v-3H4v3H2V4h2v7h16M7 8H5V6h2v2m4 0H9V6h2v2m4 0h-2V6h2v2z"></path></svg>` }, { period: "停火后4年", title: "阴影战争升级", details: "两大阵营的情报机构，联盟的“人民委员会第9局”和共同体的“共同情报局(CID)”正式成立，将对抗转入地下，开启了长达数十年的间谍与反间谍斗争。", progress: 46, icon: `<svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 10c-2.48 0-4.5-2.02-4.5-4.5S9.52 5.5 12 5.5s4.5 2.02 4.5 4.5-2.02 4.5-4.5 4.5zm0-7C10.62 7.5 9.5 8.62 9.5 10s1.12 2.5 2.5 2.5 2.5-1.12 2.5-2.5S13.38 7.5 12 7.5z"></path></svg>` }, { period: "停火后7年", title: "代理人战争爆发", details: "对峙转向全球范围的阴影战争。双方开始在南方联合酋长国等资源丰富地区扶植代理人，进行低烈度武装冲突，以避免直接对抗。", progress: 64, icon: `<svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 13.43 12 12 13.43 15.57 17 12 20.57 13.43 22 17 18.43 20.57 22 22 20.57 18.43 17zM18 2v2h-2V2H8v2H6V2H4v18h2v-2h2v2h8v-2h2v2h2V2z"></path></svg>` }, { period: "停火后12年", title: "科技竞赛", details: "共同体成立“高级防务研究计划署(ADRPA)”，催生了C-8“骏马”坦克等高科技装备。作为回应，联盟的“国家计划与资源调配总署(GOSPLAN)”也开始将资源向新一代“野牛”系列坦克倾斜。", progress: 82, icon: `<svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61-.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12-.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59-1.69.98l2.49 1c.23-.09.49 0 .61-.22l2-3.46c.12-.22-.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"></path></svg>`}, { period: "当前", title: "永无止境的消耗战", details: "数十年过去，冷战已成为常态。双方都在情报、经济、科技和局部冲突中不断试探和消耗对方，等待着下一次可能改写世界格局的危机。", progress: 98, icon: `<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path></svg>` } ];
+        const agencyData = {
+            'union-9th': { title: '人民委员会第9局', abbreviation: '9th Directorate', logo: 'the9th.png', color: 'var(--color-union-red)', content: `<p>联盟内部最令人畏惧的机构，拥有近乎无限的权力来调查、逮捕和“清洗”任何被认为是国家威胁的人。他们是意识形态的最终守卫者，确保联盟内部的绝对忠诚和稳定。第9局的特工以冷酷和高效而闻名，他们的存在本身就是一种威慑。</p>` },
+            'union-eog': { title: '对外行动处', abbreviation: 'EOG', logo: 'EOG.png', color: 'var(--color-union-red)', content: `<p>联盟在灰色边境之外的利剑。EOG负责所有境外的情报收集、秘密战争和颠覆活动。从扶植代理人到暗杀关键人物，EOG无所不用其极，以确保联盟在全球范围内的战略利益。他们是共同体最头痛的对手之一。</p>` },
+            'union-gosplan': { title: '国家计划与资源调配总署', abbreviation: 'GOSPLAN', logo: 'GOSPLAN.png', color: 'var(--color-union-red)', content: `<p>联盟庞大战争机器的心脏。GOSPLAN负责制定和执行所有五年计划，从每一颗子弹的生产到每一吨钢铁的分配，都在其严密的控制之下。虽然效率低下且官僚主义严重，但它赋予了联盟无与伦比的工业动员能力。</p>` },
+            'union-glavlit': { title: '思想与文化净化总局', abbreviation: 'GLAVLIT', logo: 'GLAVLIT.png', color: 'var(--color-union-red)', content: `<p>联盟的宣传和审查机构。GLAVLIT控制着所有媒体、艺术和出版物，确保只有符合官方意识形态的信息才能流传。他们不仅删除不和谐的声音，更擅长制造叙事，塑造公众舆论，是维护联盟思想统一的关键。</p>` },
+            'comm-cid': { title: '共同情报局 首席情报部', abbreviation: 'CID ＆ G1', logo: ['CID.png', 'G1.png'], color: 'var(--color-community-cyan)', content: `<p>共同体应对联盟威胁的核心情报机构。CID由多个成员国的情报部门协调组成，因此内部派系林立，效率时高时低。它主要负责分析联盟的动向、反间谍以及为共同体的决策者提供战略建议。其下属的特别行动部（如图二所示）则更为神秘，专注于执行高风险任务。</p>` },
+            'comm-black-sail': { title: '黑帆公司', abbreviation: 'Black Sail Inc.', logo: 'Blacksailwhite.png', color: 'var(--color-community-cyan)', content: `<p>一家在共同体法律灰色地带运作的私营军事公司。黑帆公司接受那些政府不便直接出面的“脏活”，从保护跨国公司的海外资产到直接参与代理人战争。他们装备精良，经验丰富，但忠诚只属于出价最高的人。</p>` },
+            'comm-tses': { title: 'TSES', abbreviation: 'Transnational Strategic Economic Service', logo: 'TSES.png', color: 'var(--color-community-cyan)', content: `<p>共同体的经济战武器。TSES由顶级银行家、经济学家和企业巨头组成，利用市场规则、金融制裁和贸易壁垒来削弱联盟的经济。他们相信，摧毁联盟经济体系的根基比任何军事行动都更有效。</p>` },
+            'comm-adrpa': { title: '高级防务研究计划署', abbreviation: ' ADRPA', logo: 'adrpa.png', color: 'var(--color-community-cyan)', content: `<p>确保共同体技术优势的引擎。ADRPA负责资助和研发最前沿的军事科技，从下一代主战坦克到人工智能战争系统。他们的项目通常高度保密且预算惊人，是联盟情报机构最想渗透的目标。</p>` }
+        };
+
+        const sections = gsap.utils.toArray("#main-container .snap-section");
+        const navLinks = document.querySelectorAll('.nav-link');
+        let canScroll = true;
+
+        function updateNavHighlight(index) {
+            navLinks.forEach((link, i) => {
+                link.classList.toggle('active', i === index);
+            });
+        }
+        
+        // --- 桌面端逻辑 ---
+        if (!isMobile) {
+            // FIX: Only hide sections on desktop for the animation effect
+            gsap.set(sections, { autoAlpha: 0 });
+            gsap.registerPlugin(ScrollTrigger);
+            let isAnimating = false;
+            let currentIndex = 0;
+            const animationDuration = 1.2;
+            let isMouseOverArmoryList = false;
+            
+            function goToSection(index) {
+                if (!canScroll || isAnimating || index < 0 || index >= sections.length) return;
+                isAnimating = true;
+                const fromSection = sections[currentIndex];
+                const toSection = sections[index];
+                updateNavHighlight(index);
+
+                // 处理阵营模块背景
+                if (fromSection.id === 'faction-section') {
+                    document.getElementById('faction-section').classList.remove('union-hover', 'community-hover');
+                    gsap.to('#faction-gif-background-union', { opacity: 0, duration: 0.3 });
+                    gsap.to('#faction-gif-background-community', { opacity: 0, duration: 0.3 });
+                    gsap.to('#faction-gif-background-empty', { opacity: 0, duration: 0.3 });
+                }
+                 if (toSection.id === 'faction-section') {
+                    gsap.to('#faction-gif-background-empty', { opacity: 1, duration: 0.3, delay: animationDuration / 2});
+                }
+
+                // 处理军备模块背景
+                if (fromSection.id === 'armory-section') {
+                    gsap.to('#armory-gif-background', { opacity: 0, duration: 0.3 });
+                }
+                if (toSection.id === 'armory-section') {
+                    gsap.to('#armory-gif-background', { opacity: 1, duration: 0.3, delay: animationDuration / 2 });
+                }
+
+                gsap.to(fromSection, { autoAlpha: 0, duration: animationDuration / 2, ease: "power2.in" });
+                gsap.fromTo(toSection, { autoAlpha: 0 }, {
+                    autoAlpha: 1, duration: animationDuration / 2, ease: "power2.out", delay: animationDuration / 2,
+                    onComplete: () => { isAnimating = false; currentIndex = index; if (toSection.id === 'timeline-section') startTimelineAnimation(); }
+                });
+            }
+
+            window.addEventListener('wheel', (e) => {
+                if (!canScroll || isAnimating || isMouseOverArmoryList) return;
+                goToSection(currentIndex + (e.deltaY > 0 ? 1 : -1));
+            }, { passive: true });
+            let touchStartY = 0;
+            window.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; });
+            window.addEventListener('touchend', (e) => {
+                if (!canScroll || isAnimating || isMouseOverArmoryList) return;
+                if (Math.abs(e.changedTouches[0].clientY - touchStartY) > 50) {
+                    goToSection(currentIndex + (e.changedTouches[0].clientY < touchStartY ? 1 : -1));
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    goToSection(parseInt(this.getAttribute('data-index')));
+                });
+            });
+
+            const factionSection = document.getElementById('faction-section');
+            const unionLogo = document.querySelector('.faction-panel.union .faction-logo');
+            const communityLogo = document.querySelector('.faction-panel.community .faction-logo');
+            const emptyGifBg = document.getElementById('faction-gif-background-empty');
+            const unionGifBg = document.getElementById('faction-gif-background-union');
+            const communityGifBg = document.getElementById('faction-gif-background-community');
+
+            unionLogo.addEventListener('mouseenter', () => {
+                if (isAnimating) return; 
+                factionSection.classList.add('union-hover');
+                factionSection.classList.remove('community-hover');
+                if (sections[currentIndex].id === 'faction-section') {
+                    gsap.to(unionGifBg, { opacity: 1, duration: 0.3 });
+                    gsap.to(communityGifBg, { opacity: 0, duration: 0.3 });
+                    gsap.to(emptyGifBg, { opacity: 0, duration: 0.3 });
+                }
+            });
+            communityLogo.addEventListener('mouseenter', () => {
+                if (isAnimating) return; 
+                factionSection.classList.add('community-hover');
+                factionSection.classList.remove('union-hover');
+                if (sections[currentIndex].id === 'faction-section') {
+                    gsap.to(communityGifBg, { opacity: 1, duration: 0.3 });
+                    gsap.to(unionGifBg, { opacity: 0, duration: 0.3 });
+                    gsap.to(emptyGifBg, { opacity: 0, duration: 0.3 });
+                }
+            });
+            factionSection.addEventListener('mouseleave', () => {
+                if (isAnimating) return;
+                factionSection.classList.remove('union-hover', 'community-hover');
+                gsap.to([unionGifBg, communityGifBg], { opacity: 0, duration: 0.3 });
+                if (sections[currentIndex].id === 'faction-section') {
+                    gsap.to(emptyGifBg, { opacity: 1, duration: 0.3 });
+                }
+            });
+            
+            document.getElementById('armory-list-container').addEventListener('mouseenter', () => { isMouseOverArmoryList = true; });
+            document.getElementById('armory-list-container').addEventListener('mouseleave', () => { isMouseOverArmoryList = false; });
+            
+            const startSection = document.getElementById('start-section');
+            startSection.addEventListener('mouseenter', (e) => {
+                if (e.target.classList.contains('panel-story')) startSection.className = 'story-hover';
+                else if (e.target.classList.contains('panel-creator')) startSection.className = 'creator-hover';
+                else if (e.target.classList.contains('panel-dlc')) startSection.className = 'dlc-hover';
+            }, true);
+            startSection.addEventListener('mouseleave', () => startSection.className = '');
+        }
+
+        // --- 移动端逻辑 ---
+        if (isMobile) {
+            let currentIndex = 0;
+            const backToTopBtn = document.getElementById('mobile-back-to-top');
+
+            function mobileGoToSection(index) {
+                if (index >= 0 && index < sections.length) {
+                    sections[index].scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+            
+            backToTopBtn.addEventListener('click', () => mobileGoToSection(0));
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    mobileGoToSection(parseInt(this.getAttribute('data-index')));
+                });
+            });
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.intersectionRatio > 0.6) {
+                        const index = sections.indexOf(entry.target);
+                        currentIndex = index;
+                        updateNavHighlight(index);
+                        
+                        if (index > 0) {
+                            backToTopBtn.classList.add('visible');
+                        } else {
+                            backToTopBtn.classList.remove('visible');
+                        }
+
+                        if (entry.target.id === 'timeline-section') {
+                             startTimelineAnimation();
+                        }
+                    }
+                });
+            }, { threshold: 0.6 });
+
+            sections.forEach(section => observer.observe(section));
+
+            const startSection = document.getElementById('start-section');
+            const startPanels = startSection.querySelectorAll('.start-panel');
+            startPanels.forEach(panel => {
+                panel.addEventListener('click', () => {
+                    const panelType = panel.classList.contains('panel-story') ? 'story' :
+                                      panel.classList.contains('panel-creator') ? 'creator' : 'dlc';
+                    const newClass = `${panelType}-expanded`;
+
+                    if (startSection.classList.contains(newClass)) {
+                        startSection.className = '';
+                    } else {
+                        startSection.className = newClass;
+                    }
+                });
+            });
+        }
+
+        // --- 通用初始化逻辑 ---
+        const progressBar = document.getElementById('progress-bar');
+        const loader = document.getElementById('loader');
+        window.addEventListener('load', () => {
+            progressBar.style.width = '100%';
+            setTimeout(() => {
+                gsap.to(loader, { opacity: 0, duration: 0.5, onComplete: () => {
+                    loader.style.display = 'none';
+                    if (!isMobile) {
+                        gsap.to(sections[0], { autoAlpha: 1 });
+                        const heroContent = sections[0].querySelector('.section-content-wrapper');
+                        gsap.from(heroContent.children, { y: 50, opacity: 0, duration: 1, ease: "power3.out", stagger: 0.2 });
+                        gsap.to("#hero-red-line", { width: '100%', duration: 3, ease: 'power1.inOut', delay: 0.5 });
+                    } else {
+                        // For mobile, we don't need the fade-in animation, sections are already visible via CSS
+                    }
+                    updateNavHighlight(0);
+                }});
+            }, 1600);
+        });
+        
+        const startSectionContainer = document.getElementById('start-section-container');
+        const mainContainerEl = document.getElementById('main-container');
+        const mainNav = document.getElementById('main-nav');
+        document.getElementById('show-start-section-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            canScroll = false;
+            gsap.to([mainContainerEl, mainNav], { autoAlpha: 0, duration: 0.5 });
+            gsap.to(startSectionContainer, { autoAlpha: 1, duration: 0.5, delay: 0.5 });
+        });
+        document.getElementById('back-to-main-btn').addEventListener('click', function() {
+            gsap.to(startSectionContainer, { autoAlpha: 0, duration: 0.5 });
+            gsap.to([mainContainerEl, mainNav], { autoAlpha: 1, duration: 0.5, delay: 0.5, onComplete: () => { canScroll = true; }});
+        });
+        
+        const armoryListContainer = document.getElementById('armory-list-container');
+        const armoryTabs = document.querySelectorAll('.armory-tab');
+        let currentFaction = 'union';
+        renderArmoryList(currentFaction);
+
+        armoryTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const newFaction = this.dataset.faction;
+                if (newFaction === currentFaction) return;
+                currentFaction = newFaction;
+                const newColor = this.style.getPropertyValue('--armory-accent-color');
+                gsap.to(armoryListContainer, {
+                    opacity: 0, duration: 0.3, ease: 'power2.in',
+                    onComplete: () => {
+                        armoryTabs.forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                        armoryListContainer.style.setProperty('--armory-accent-color', newColor);
+                        renderArmoryList(currentFaction);
+                        gsap.fromTo(armoryListContainer, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
+                    }
+                });
+            });
+        });
+        
+        const cookieBanner = document.getElementById('cookie-consent-banner');
+        if (!localStorage.getItem('greyfrontier_cookie_consent')) {
+            setTimeout(() => { cookieBanner.classList.remove('translate-y-full'); }, 3000);
+        }
+        document.getElementById('cookie-agree-btn').addEventListener('click', () => {
+            localStorage.setItem('greyfrontier_cookie_consent', 'true');
+            cookieBanner.classList.add('translate-y-full');
+        });
+
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalContent = document.getElementById('modal-content');
+        const modalBody = document.getElementById('modal-body');
+
+        document.getElementById('union-archive-btn').addEventListener('click', () => showModal(factionInfo.union));
+        document.getElementById('community-archive-btn').addEventListener('click', () => showModal(factionInfo.community));
+        
+        document.querySelectorAll('.agency-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const agencyId = card.dataset.agencyId;
+                if (agencyData[agencyId]) {
+                    showModal(agencyData[agencyId]);
+                }
+            });
+        });
+
+        document.getElementById('modal-close-btn').addEventListener('click', hideModal);
+        modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) hideModal(); });
+        
+        function showModal(data) {
+            modalContent.style.setProperty('--modal-color', data.color);
+
+            let logoHtml = '';
+            if (data.logo) {
+                if (Array.isArray(data.logo)) {
+                    logoHtml = data.logo.map(src => `<img src="${src}" class="w-24 h-24 object-contain" onerror="this.src='https://placehold.co/200x200/111/333?text=ERR'">`).join('');
+                } else {
+                    logoHtml = `<img src="${data.logo}" class="w-24 h-24 object-contain" onerror="this.src='https://placehold.co/200x200/111/333?text=ERR'">`;
+                }
+            }
+            
+            let headerHtml = '';
+            if (data.logo) {
+                headerHtml = `
+                    <div class="flex flex-col md:flex-row items-center gap-x-6 gap-y-4 text-center md:text-left">
+                        <div class="flex gap-4 flex-shrink-0">${logoHtml}</div>
+                        <div>
+                            <h2 class="font-oswald text-3xl font-bold">${data.title}</h2>
+                            ${data.abbreviation ? `<p class="text-md italic text-gray-400">${data.abbreviation}</p>` : ''}
+                        </div>
+                    </div>
+                    <hr class="border-gray-700 my-4">
+                `;
+            } else {
+                 headerHtml = `<h2 class="font-oswald text-4xl font-bold mb-2">${data.title}</h2>`;
+            }
+
+            modalBody.innerHTML = `
+                ${headerHtml}
+                <p class="text-sm text-gray-400 mb-6">${data.period || ''}</p>
+                <div class="text-gray-300 space-y-4">${data.content}</div>
+            `;
+
+            modalOverlay.classList.add('visible');
+            gsap.fromTo(modalContent, { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' });
+            canScroll = false;
+        }
+        function hideModal() {
+            gsap.to(modalContent, { y: 50, opacity: 0, duration: 0.3, ease: 'power2.in', onComplete: () => {
+                modalOverlay.classList.remove('visible');
+                canScroll = true;
+            }});
+        }
+        function renderArmoryList(faction) {
+            const data = armoryData[faction];
+            const armoryList = document.getElementById('armory-list');
+            armoryList.innerHTML = '';
+            for (const category in data) {
+                const categoryTitle = document.createElement('h3');
+                categoryTitle.className = 'font-oswald text-xl font-bold mt-6 mb-2 text-gray-400';
+                categoryTitle.textContent = category;
+                armoryList.appendChild(categoryTitle);
+                data[category].forEach(item => {
+                    const itemWrapper = document.createElement('div');
+                    itemWrapper.className = 'armory-list-item';
+                    itemWrapper.innerHTML = `<div class="armory-list-item-name">${item.name}</div><div class="armory-list-item-desc">${item.desc}</div>`;
+                    itemWrapper.querySelector('.armory-list-item-name').addEventListener('click', (e) => {
+                        const wasActive = itemWrapper.classList.contains('active');
+                        document.querySelectorAll('#armory-list .armory-list-item.active').forEach(activeEl => activeEl.classList.remove('active'));
+                        if (!wasActive) itemWrapper.classList.add('active');
+                    });
+                    armoryList.appendChild(itemWrapper);
+                });
+            }
+        }
+        function startTimelineAnimation() {
+            const container = document.getElementById('timeline-horizontal-container');
+            if (!container || container.dataset.animated) return;
+            container.dataset.animated = true;
+            container.innerHTML = '';
+            timelineData.forEach((eventData, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'timeline-ray-wrapper';
+                wrapper.style.top = `${(index + 0.5) * (100 / timelineData.length)}%`;
+                wrapper.style.transform = 'translateY(-50%)';
+                wrapper.innerHTML = `<div class="timeline-ray"></div><div class="timeline-ray-event"><p class="font-oswald tracking-widest">${eventData.title}</p><p class="text-xs text-gray-400 mt-1">${eventData.period}</p></div>`;
+                container.appendChild(wrapper);
+                wrapper.addEventListener('click', () => showModal({
+                    title: eventData.title,
+                    period: eventData.period,
+                    content: eventData.details,
+                    color: 'var(--color-union-red)'
+                }));
+            });
+            const rays = gsap.utils.toArray('#timeline-horizontal-container .timeline-ray');
+            const events = gsap.utils.toArray('#timeline-horizontal-container .timeline-ray-event');
+            gsap.set(rays, { width: 0 });
+            gsap.set(events, { opacity: 0, x: -20 });
+            const tl = gsap.timeline();
+            tl.to(rays, { width: (i) => `${25 + i * 10}%`, duration: 1.2, ease: 'cubic-bezier(0.25, 1, 0.5, 1)', stagger: 0.15 })
+              .to(events, { opacity: 1, x: 0, duration: 0.7, ease: 'power2.out', stagger: 0.15 }, "-=1.0");
+        }
+    });
+    </script>
+</body>
+</html>
