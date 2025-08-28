@@ -316,11 +316,19 @@
         .is-mobile .faction-panel {
             width: 100%;
             height: 50vh;
+            padding: 1rem; /* 增加内边距 */
         }
         .is-mobile .faction-details {
             max-height: 300px;
             opacity: 1;
-            margin-top: 1rem;
+            margin-top: 0.5rem; /* 减小间距 */
+        }
+        .is-mobile .faction-details h2 {
+            font-size: 1.875rem; /* 缩小标题 */
+            line-height: 2.25rem;
+        }
+         .is-mobile .faction-details p {
+            font-size: 0.875rem; /* 缩小描述文字 */
         }
 
         .is-mobile h1, .is-mobile h2, .is-mobile h3 {
@@ -458,7 +466,8 @@
         <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 <div class="flex items-center">
-                    <img src="MLOGO.png" alt="Grey Frontier Logo" class="h-12 w-auto">
+                    <!-- LOGO 已被替换为图片 -->
+                    <img src="MLOGO.png" alt="Grey Frontier Logo" class="h-12 w-auto" onerror="this.style.display='none'">
                 </div>
                 <div class="hidden md:flex items-center space-x-8 text-sm uppercase tracking-wider">
                     <a href="#hero" data-index="0" class="nav-link text-gray-300 hover:text-white">首页</a>
@@ -509,24 +518,24 @@
                  <div class="faction-panel union">
                     <div class="faction-content p-8">
                         <div class="faction-logo">
-                            <img src="logo1.png" alt="索切科契联盟 Logo" class="w-40 h-40 md:w-56 md:h-56 mx-auto object-contain" onerror="this.onerror=null;this.src='https://placehold.co/224x224/c81e1e/ffffff?text=Logo';">
+                            <img src="logo1.png" alt="索切科契联盟 Logo" class="w-32 h-32 md:w-56 md:h-56 mx-auto object-contain" onerror="this.onerror=null;this.src='https://placehold.co/224x224/c81e1e/ffffff?text=Logo';">
                         </div>
                         <div class="faction-details">
-                            <h2 class="font-oswald text-3xl md:text-5xl font-bold uppercase tracking-wider mb-2 md:mb-4">索切科契联盟</h2>
-                            <p class="text-gray-300 max-w-md mx-auto text-sm md:text-base">一个由中央计划委员会统一协调关键工业的高度集权体制。</p>
-                            <button id="union-archive-btn" class="mt-4 md:mt-6 border-2 border-[var(--color-union-red)] text-[var(--color-union-red)] font-bold py-2 px-6 rounded-sm uppercase tracking-wider hover:bg-[var(--color-union-red)] hover:text-white transition-colors duration-300">查看档案</button>
+                            <h2 class="font-oswald font-bold uppercase tracking-wider mb-2">索切科契联盟</h2>
+                            <p class="text-gray-300 max-w-md mx-auto">一个由中央计划委员会统一协调关键工业的高度集权体制。</p>
+                            <button id="union-archive-btn" class="mt-4 border-2 border-[var(--color-union-red)] text-[var(--color-union-red)] font-bold py-2 px-6 rounded-sm uppercase tracking-wider hover:bg-[var(--color-union-red)] hover:text-white transition-colors duration-300">查看档案</button>
                         </div>
                     </div>
                 </div>
                 <div class="faction-panel community">
                     <div class="faction-content p-8">
                         <div class="faction-logo">
-                            <img src="logo2.png" alt="海洋联合共同体 Logo" class="w-40 h-40 md:w-56 md:h-56 mx-auto object-contain" onerror="this.onerror=null;this.src='https://placehold.co/224x224/00d1ff/ffffff?text=Logo';">
+                            <img src="logo2.png" alt="海洋联合共同体 Logo" class="w-32 h-32 md:w-56 md:h-56 mx-auto object-contain" onerror="this.onerror=null;this.src='https://placehold.co/224x224/00d1ff/ffffff?text=Logo';">
                         </div>
                         <div class="faction-details">
-                            <h2 class="font-oswald text-3xl md:text-5xl font-bold uppercase tracking-wider mb-2 md:mb-4">海洋联合共同体</h2>
-                            <p class="text-gray-300 max-w-md mx-auto text-sm md:text-base">由多个主权国家组成的松散军事经济同盟。</p>
-                            <button id="community-archive-btn" class="mt-4 md:mt-6 border-2 border-[var(--color-community-cyan)] text-[var(--color-community-cyan)] font-bold py-2 px-6 rounded-sm uppercase tracking-wider hover:bg-[var(--color-community-cyan)] hover:text-white transition-colors duration-300">访问数据库</button>
+                            <h2 class="font-oswald font-bold uppercase tracking-wider mb-2">海洋联合共同体</h2>
+                            <p class="text-gray-300 max-w-md mx-auto">由多个主权国家组成的松散军事经济同盟。</p>
+                            <button id="community-archive-btn" class="mt-4 border-2 border-[var(--color-community-cyan)] text-[var(--color-community-cyan)] font-bold py-2 px-6 rounded-sm uppercase tracking-wider hover:bg-[var(--color-community-cyan)] hover:text-white transition-colors duration-300">访问数据库</button>
                         </div>
                     </div>
                 </div>
@@ -687,6 +696,13 @@
         const navLinks = document.querySelectorAll('.nav-link');
         let canScroll = true;
 
+        // --- 背景元素定义 ---
+        const armoryGifBg = document.getElementById('armory-gif-background');
+        const unionGifBg = document.getElementById('faction-gif-background-union');
+        const communityGifBg = document.getElementById('faction-gif-background-community');
+        const emptyGifBg = document.getElementById('faction-gif-background-empty');
+        const allBgs = [armoryGifBg, unionGifBg, communityGifBg, emptyGifBg];
+
         function updateNavHighlight(index) {
             navLinks.forEach((link, i) => {
                 link.classList.toggle('active', i === index);
@@ -695,7 +711,6 @@
         
         // --- 桌面端逻辑 ---
         if (!isMobile) {
-            // FIX: Only hide sections on desktop for the animation effect
             gsap.set(sections, { autoAlpha: 0 });
             gsap.registerPlugin(ScrollTrigger);
             let isAnimating = false;
@@ -710,23 +725,12 @@
                 const toSection = sections[index];
                 updateNavHighlight(index);
 
-                // 处理阵营模块背景
-                if (fromSection.id === 'faction-section') {
-                    document.getElementById('faction-section').classList.remove('union-hover', 'community-hover');
-                    gsap.to('#faction-gif-background-union', { opacity: 0, duration: 0.3 });
-                    gsap.to('#faction-gif-background-community', { opacity: 0, duration: 0.3 });
-                    gsap.to('#faction-gif-background-empty', { opacity: 0, duration: 0.3 });
-                }
-                 if (toSection.id === 'faction-section') {
-                    gsap.to('#faction-gif-background-empty', { opacity: 1, duration: 0.3, delay: animationDuration / 2});
-                }
-
-                // 处理军备模块背景
-                if (fromSection.id === 'armory-section') {
-                    gsap.to('#armory-gif-background', { opacity: 0, duration: 0.3 });
-                }
-                if (toSection.id === 'armory-section') {
-                    gsap.to('#armory-gif-background', { opacity: 1, duration: 0.3, delay: animationDuration / 2 });
+                // 处理背景切换
+                gsap.to(allBgs, { opacity: 0, duration: 0.3 });
+                if (toSection.id === 'faction-section') {
+                    gsap.to(emptyGifBg, { opacity: 1, duration: 0.3, delay: animationDuration / 2});
+                } else if (toSection.id === 'armory-section') {
+                    gsap.to(armoryGifBg, { opacity: 1, duration: 0.3, delay: animationDuration / 2 });
                 }
 
                 gsap.to(fromSection, { autoAlpha: 0, duration: animationDuration / 2, ease: "power2.in" });
@@ -764,9 +768,6 @@
             const factionSection = document.getElementById('faction-section');
             const unionLogo = document.querySelector('.faction-panel.union .faction-logo');
             const communityLogo = document.querySelector('.faction-panel.community .faction-logo');
-            const emptyGifBg = document.getElementById('faction-gif-background-empty');
-            const unionGifBg = document.getElementById('faction-gif-background-union');
-            const communityGifBg = document.getElementById('faction-gif-background-community');
 
             unionLogo.addEventListener('mouseenter', () => {
                 if (isAnimating) return; 
@@ -836,12 +837,23 @@
                         currentIndex = index;
                         updateNavHighlight(index);
                         
+                        // 控制返回顶部按钮
                         if (index > 0) {
                             backToTopBtn.classList.add('visible');
                         } else {
                             backToTopBtn.classList.remove('visible');
                         }
 
+                        // 控制背景
+                        gsap.to(allBgs, { opacity: 0, duration: 0.4 });
+                        const visibleSectionId = entry.target.id;
+                        if (visibleSectionId === 'armory-section') {
+                            gsap.to(armoryGifBg, { opacity: 1, duration: 0.4 });
+                        } else if (visibleSectionId === 'faction-section') {
+                            gsap.to(emptyGifBg, { opacity: 1, duration: 0.4 });
+                        }
+
+                        // 触发动画
                         if (entry.target.id === 'timeline-section') {
                              startTimelineAnimation();
                         }
@@ -884,8 +896,6 @@
                         const heroContent = sections[0].querySelector('.section-content-wrapper');
                         gsap.from(heroContent.children, { y: 50, opacity: 0, duration: 1, ease: "power3.out", stagger: 0.2 });
                         gsap.to("#hero-red-line", { width: '100%', duration: 3, ease: 'power1.inOut', delay: 0.5 });
-                    } else {
-                        // For mobile, we don't need the fade-in animation, sections are already visible via CSS
                     }
                     updateNavHighlight(0);
                 }});
@@ -1102,4 +1112,3 @@
     </script>
 </body>
 </html>
-
