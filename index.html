@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>灰色边境 | 官方网站 V5.9 (最终版)</title>
+    <title>灰色边境-GreyFrontier</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- GSAP Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700;900&family=Oswald:wght@400;700&display=swap" rel="stylesheet">
@@ -91,7 +92,7 @@
 
         /* --- 导航栏 --- */
         #main-nav { 
-            transition: background-color 0.4s ease, transform 0.4s ease;
+            transition: background-color: 0.4s ease, transform 0.4s ease;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             background: linear-gradient(to bottom, rgba(5,5,5,0.6), rgba(5,5,5,0.1));
             backdrop-filter: blur(8px);
@@ -201,6 +202,18 @@
             opacity: 0.05; background-size: cover; transition: all 0.5s ease;
         }
         .agency-card:hover .agency-bg { opacity: 0.1; transform: scale(1.1); }
+        
+        /* 权力机关打字机效果 */
+        #agencies-content-wrapper { transition: opacity 0.5s ease-in-out; }
+        .typewriter-cursor::after {
+            content: '_';
+            opacity: 1;
+            animation: blink 0.7s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
 
         /* --- 开始模块 --- */
         #start-section-container {
@@ -512,21 +525,28 @@
         </section>
 
         <section id="agencies-section" class="snap-section bg-black px-4">
-            <div class="section-content-wrapper max-w-screen-xl mx-auto w-full">
-                <h2 class="section-title font-oswald text-5xl font-bold text-center border-gray-700">阴影中的权力</h2>
-                <p class="text-center mt-4 text-gray-400 max-w-2xl mx-auto">战争不仅在边境线上进行。</p>
-                <div class="mt-8"><h3 class="font-oswald text-2xl md:text-3xl font-bold text-center text-[var(--color-union-red)]">索切科契联盟机构</h3><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-                    <div class="agency-card p-6" data-agency-id="union-9th"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">人民委员会第9局</h4><p class="text-sm italic text-gray-500 my-1">9th Directorate</p><p class="text-sm mt-2 text-gray-400">对内安全与纪律监督机构。</p></div>
-                    <div class="agency-card p-6" data-agency-id="union-eog"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">对外行动处</h4><p class="text-sm italic text-gray-500 my-1">External Operations Group</p><p class="text-sm mt-2 text-gray-400">负责对外情报、颠覆和特别行动。</p></div>
-                    <div class="agency-card p-6" data-agency-id="union-gosplan"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">GOSPLAN</h4><p class="text-sm italic text-gray-500 my-1">State Planning Committee</p><p class="text-sm mt-2 text-gray-400">联盟的经济大脑，负责所有生产计划。</p></div>
-                    <div class="agency-card p-6" data-agency-id="union-glavlit"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">GLAVLIT</h4><p class="text-sm italic text-gray-500 my-1">Main Administration for Literary Affairs</p><p class="text-sm mt-2 text-gray-400">意识形态的守护者，负责审查。</p></div>
-                </div></div>
-                <div class="mt-8"><h3 class="font-oswald text-2xl md:text-3xl font-bold text-center text-[var(--color-community-cyan)]">海洋联合共同体机构</h3><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-                    <div class="agency-card p-6" data-agency-id="comm-cid" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">共同情报局 (CID)</h4><p class="text-sm italic text-gray-500 my-1">Common Intelligence Directorate</p><p class="text-sm mt-2 text-gray-400">共同体的中央情报机构。</p></div>
-                    <div class="agency-card p-6" data-agency-id="comm-black-sail" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">黑帆公司</h4><p class="text-sm italic text-gray-500 my-1">Black Sail Inc.</p><p class="text-sm mt-2 text-gray-400">私营军事承包商，执行“脏活”。</p></div>
-                    <div class="agency-card p-6" data-agency-id="comm-tses" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">TSES</h4><p class="text-sm italic text-gray-500 my-1">Transnational Strategic Economic Service</p><p class="text-sm mt-2 text-gray-400">共同体的经济战矛头。</p></div>
-                    <div class="agency-card p-6" data-agency-id="comm-adrpa" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">ADRPA</h4><p class="text-sm italic text-gray-500 my-1">Advanced Defense Research Projects Agency</p><p class="text-sm mt-2 text-gray-400">技术优势引擎，负责军事科技研发。</p></div>
-                </div></div>
+            <div class="section-content-wrapper max-w-screen-xl mx-auto w-full relative h-full flex items-center justify-center">
+                <!-- Typewriter Overlay -->
+                <div id="power-typewriter-overlay" class="absolute inset-0 bg-black z-10 flex flex-col items-center justify-center text-center">
+                    <p id="power-text-1" class="font-oswald text-4xl md:text-6xl text-gray-200 px-4"></p>
+                    <p id="power-text-2" class="font-oswald text-4xl md:text-6xl text-gray-200 mt-4 px-4"></p>
+                </div>
+                
+                <!-- Agencies Content -->
+                <div id="agencies-content-wrapper" class="opacity-0 w-full">
+                    <div class="mt-8"><h3 class="font-oswald text-2xl md:text-3xl font-bold text-center text-[var(--color-union-red)]">索切科契联盟</h3><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+                        <div class="agency-card p-6" data-agency-id="union-9th"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">人民委员会第9局</h4><p class="text-sm mt-2 text-gray-400">对内安全与纪律监督机构。</p></div>
+                        <div class="agency-card p-6" data-agency-id="union-eog"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">对外行动处</h4></p><p class="text-sm mt-2 text-gray-400">负责对外情报与颠覆部门。</p></div>
+                        <div class="agency-card p-6" data-agency-id="union-gosplan"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">计划与资源调配总署</h4><p class="text-sm mt-2 text-gray-400">联盟的经济与发展计划机关。</p></div>
+                        <div class="agency-card p-6" data-agency-id="union-glavlit"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">思想与文化净化总局</h4><p class="text-sm mt-2 text-gray-400">审查意识形态与出版物。</p></div>
+                    </div></div>
+                    <div class="mt-8"><h3 class="font-oswald text-2xl md:text-3xl font-bold text-center text-[var(--color-community-cyan)]">海洋联合共同体</h3><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+                        <div class="agency-card p-6" data-agency-id="comm-cid" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">共同情报局与首席情报部</h4><p class="text-sm mt-2 text-gray-400">共同组成共同体的中央情报机构。</p></div>
+                        <div class="agency-card p-6" data-agency-id="comm-black-sail" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">黑帆公司</h4><p class="text-sm mt-2 text-gray-400">大型跨国私营军事承包商。</p></div>
+                        <div class="agency-card p-6" data-agency-id="comm-tses" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">贸易安全与经济制裁办公室</h4><p class="text-sm mt-2 text-gray-400">共同体的经济战矛头。</p></div>
+                        <div class="agency-card p-6" data-agency-id="comm-adrpa" style="--color-union-red: var(--color-community-cyan);"><div class="agency-bg" style="background-image: url('')"></div><h4 class="font-oswald text-xl font-bold">高级防务研究计划署</h4><p class="text-sm mt-2 text-gray-400">负责分派验收军事科技项目。</p></div>
+                    </div></div>
+                </div>
             </div>
         </section>
         
@@ -613,6 +633,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // --- 注册GSAP插件 ---
+        gsap.registerPlugin(TextPlugin);
+
         // --- 通用数据 ---
         const armoryData = { union: { "陆军装备": [{ name: `T-82 "野牛" 主战坦克`, desc: `皮实、廉价、易于量产。装甲厚重，但火控系统粗糙，依赖数量优势进行集团冲锋。` },{ name: `T-84 "堡垒" 重型坦克`, desc: `野牛的放大版，速度缓慢但正面装甲几乎无法被击穿。通常用于攻坚战，是移动的钢铁壁垒。` },{ name: `BMP-90 "冲锋" 履带式步兵战车`, desc: `能搭载一个步兵班，火力凶猛但防护薄弱，旨在快速将步兵投送到前线。` },{ name: `S-19 "冰雹" 152毫米自行榴弹炮`, desc: `射程远，威力大，但装填速度慢，机动性差，需要严密保护。` }], "空军装备": [{ name: `SW-30 "利刃" 双发重型制空战斗机`, desc: `机动性强，雷达功率大，专为在广阔的边境上空夺取制空权而设计。` },{ name: `SA-12 "白嘴鸦" 亚音速重甲攻击机`, desc: `专为低空近距离支援设计，能承受大量轻武器的伤害的同时俯冲撕裂敌方阵地，又被称为“开罐器”。` },{ name: `Te-200 "惩罚者" 远程亚音速轰炸机`, desc: `能携带大量常规炸弹或远程巡航导弹，是联盟的战略威慑力量。` }], "海军装备": [{ name: `"警戒" 级导弹巡洋舰`, desc: `装备了大量反舰导弹的重型水面舰艇，负责守卫联盟的近海防线。` },{ name: `"梭鱼" 级攻击核潜艇`, desc: `深潜、静音的核潜艇，如同深海中的幽灵，专门用于切断共同体的海上贸易生命线。` }], "单兵装备": [{ name: `KZ-85卡宾枪`, desc: `全自动步枪，结构简单，冲压机匣，在任何恶劣环境下都极其可靠，但精度一般。` },{ name: `D86轻机枪`, desc: `使用弹鼓供弹，为步兵班提供持续的火力压制手段。长时间射击易使枪管过热极大降低性能，需冷却后再使用。` },{ name: `RPG-7 "穿刺者"`, desc: `简单、廉价的无制导火箭筒，需要射手靠近目标才能保证命中率，通常采用饱和攻击战术。` },{ name: `"信号旗" 便携式干扰器`, desc: `笨重的背负式电子战设备，能有效压制小范围内的敌方通讯和电子信号。` },{ name: `"鼹鼠" 复合钻地炸药`, desc: `能以较低噪音钻入混凝土工事内部引爆，彻底摧毁目标或为突击队打开通路。` }] }, community: { "陆军装备": [{ name: `C-8 "骏马" 主战坦克`, desc: `高性能但昂贵的坦克。拥有先进的火控系统和复合装甲，强调单车的生存性和精确打击能力。维护复杂，产量较低。` },{ name: `IFV-10 "战马" 步兵战车`, desc: `拥有先进的传感器，能与“骏马”坦克协同作战，正面装甲厚重。也正因如此，其速度并不比骏马坦克快多少。` },{ name: `M-12 "投石索" 坦克歼击车`, desc: `拥有自动装弹机和先进的火控系统，标配105毫米滑膛炮。缺点乘员舱过大挤压弹舱导致载弹量较小。` }], "空军装备": [{ name: `AF-21 "猎隼" 单发多用途战斗机`, desc: `速度快，功能全面，能执行空战、对地攻击和侦察等多种任务。` },{ name: `A-15 "屠夫" 高亚音速攻击机`, desc: `载弹量大，拥有先进的精确制导武器，能在防区外发动致命打击。机炮射速极快但精度不高。` },{ name: `B-5 "深海蟹" 隐形轰炸机`, desc: `采用隐形设计的洲际轰炸机，用于对高价值目标进行外科手术式打击。` }], "海军装备": [{ name: `"无畏" 级航空母舰`, desc: `共同体全球力量投射的核心，能搭载一支强大的舰载机联队，是契约组织海军的首要目标。` },{ name: `"海啸" 级攻击核潜艇`, desc: `技术先进的攻击核潜艇，既能反潜，也能发射巡航导弹攻击陆地目标。` },{ name: `"神盾" 级导弹巡洋舰`, desc: `航母战斗群的保护核心。装备了最先进的相控阵雷达和垂直发射系统，负责拦截饱和导弹攻击，价格极其昂贵。` },{ name: `"短剑" 轻型攻击艇`, desc: `高速、隐形的攻击巡逻艇，用于在近海或大规模作战时执行快速打击和特种作战支援任务。` }], "单兵装备": [{ name: `R-15制式步枪`, desc: `全自动步枪，采用模块化设计，精度极高，但对保养要求苛刻，在边境的泥泞中故障率较高。` },{ name: `M-25班用自动武器`, desc: `弹匣供弹的轻机枪，射速快，重量轻，枪管可快拆。` },{ name: `AIM-8 "猎手" 反坦克导弹`, desc: `"发射后不管"的智能导弹，能自动攻击装甲车脆弱的顶部装甲，但价格昂贵，装备数量有限。` },{ name: `"百眼巨人" 榴弹发射器`, desc: `榴弹爆炸后以极强压力爆射出巨量碎片，对附近大范围步兵造成致命或致残打击。可随时更换弹种。` },{ name: `"幽灵" 光学迷彩服`, desc: `由黑帆公司精英特工使用，能动态模拟环境光线与纹理，极大降低被目视发现的概率。耗电量较高且光学回路复杂，无法长时间保持开启。` }] } };
         const factionInfo = { union: { title: "索切科契联盟", logo: "logo1.png", color: "var(--color-union-red)", content: `<h3 class="font-oswald text-2xl font-bold mb-4">政治体制：指导性国家辛迪加主义</h3><p class="text-gray-400 mb-6">一个由中央计划委员会统一协调关键工业（能源、制造、农业）的高度集权体制。其官僚体系庞大、僵化，强调稳定与可预测性，牺牲了效率与创新。</p><h3 class="font-oswald text-2xl font-bold mb-4">社会形态：集体主义</h3><p class="text-gray-400">个人价值由其在国家机器中的功能性决定。社会福利系统完备，覆盖公民的一生。个人选择权被极大的压缩，社会氛围压抑、单调，但拥有强大的工业动员能力和内部凝聚力。首都是大陆心脏地带的工业重镇“马格尼托格勒”。</p>` }, community: { title: "海洋联合共同体", logo: "logo2.png", color: "var(--color-community-cyan)", content: `<h3 class="font-oswald text-2xl font-bold mb-4">政治体制：军事贸易联盟</h3><p class="text-gray-400 mb-6">由多个主权国家组成的松散军事经济同盟，由最强大的沿海共和国"维尔利亚"主导。核心是确保海上贸易路线安全和市场开放。内部政治斗争激烈，大型跨国公司和军事承包商拥有巨大影响力。</p><h3 class="font-oswald text-2xl font-bold mb-4">社会形态：资本主义</h3><p class="text-gray-400">市场决定社会运转，宣传个人自由与机会。社会阶级固化，贫富差距巨大。文化多元但碎片化，充满活力但缺乏长远规划和统一意志。联盟总部位于沿海的国际贸易中心“自由港”。</p>` } };
@@ -677,7 +700,12 @@
                 gsap.to(fromSection, { autoAlpha: 0, duration: animationDuration / 2, ease: "power2.in" });
                 gsap.fromTo(toSection, { autoAlpha: 0 }, {
                     autoAlpha: 1, duration: animationDuration / 2, ease: "power2.out", delay: animationDuration / 2,
-                    onComplete: () => { isAnimating = false; currentIndex = index; if (toSection.id === 'timeline-section') startTimelineAnimation(); }
+                    onComplete: () => { 
+                        isAnimating = false; 
+                        currentIndex = index; 
+                        if (toSection.id === 'timeline-section') startTimelineAnimation(); 
+                        if (toSection.id === 'agencies-section') startPowerSectionAnimation();
+                    }
                 });
             }
 
@@ -784,6 +812,9 @@
 
                         if (entry.target.id === 'timeline-section') {
                              startTimelineAnimation();
+                        }
+                        if (entry.target.id === 'agencies-section') {
+                             startPowerSectionAnimation();
                         }
                     }
                 });
@@ -987,6 +1018,53 @@
             const tl = gsap.timeline();
             tl.to(rays, { width: (i) => `${25 + i * 10}%`, duration: 1.2, ease: 'cubic-bezier(0.25, 1, 0.5, 1)', stagger: 0.15 })
               .to(events, { opacity: 1, x: 0, duration: 0.7, ease: 'power2.out', stagger: 0.15 }, "-=1.0");
+        }
+
+        function startPowerSectionAnimation() {
+            const section = document.getElementById('agencies-section');
+            if (!section || section.dataset.animated) return;
+            section.dataset.animated = true;
+
+            const overlay = document.getElementById('power-typewriter-overlay');
+            const content = document.getElementById('agencies-content-wrapper');
+            const text1 = document.getElementById('power-text-1');
+            const text2 = document.getElementById('power-text-2');
+
+            // 重置文本内容，避免上次动画残留
+            text1.textContent = '';
+            text2.textContent = '';
+
+            gsap.set(content, { opacity: 0 });
+            gsap.set(overlay, { opacity: 1, display: 'flex' });
+
+            const tl = gsap.timeline();
+
+            tl.to(text1, {
+                duration: 1.2,
+                text: { value: "战争" },
+                ease: "none",
+                onStart: () => text1.classList.add('typewriter-cursor'),
+                onComplete: () => text1.classList.remove('typewriter-cursor')
+            })
+            // 使用空动画来制造一个延时，而不是暂停
+            .to({}, {duration: 0.4})
+            .to(text2, {
+                duration: 2.2,
+                text: { value: "不仅在边境线上进行" },
+                ease: "none",
+                onStart: () => text2.classList.add('typewriter-cursor'),
+                onComplete: () => text2.classList.remove('typewriter-cursor')
+            })
+            .to(overlay, {
+                duration: 0.8,
+                opacity: 0,
+                delay: 0.8, // 文字显示完毕后等待一会再淡出
+                onComplete: () => overlay.style.display = 'none'
+            })
+            .to(content, {
+                duration: 0.8,
+                opacity: 1
+            }, "-=0.8"); // 在遮罩层淡出的同时，内容淡入
         }
     });
     </script>
