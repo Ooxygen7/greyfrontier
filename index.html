@@ -294,6 +294,13 @@
         .is-mobile html, .is-mobile body {
             overflow: initial;
         }
+        /* 移动端顶栏透明化 */
+        .is-mobile #main-nav {
+            background: transparent;
+            background-image: none;
+            backdrop-filter: none;
+            border-bottom: none;
+        }
         .is-mobile #main-container {
             height: auto;
             overflow-y: scroll;
@@ -459,7 +466,14 @@
 </head>
 <body class="antialiased">
 
-    <div id="loader"><div class="loader-content"><div class="loader-logo">GREY FRONTIER</div><p class="mt-2 text-sm text-gray-400">正在建立安全连接...</p><div class="w-32 h-0.5 bg-gray-700 mx-auto mt-4"><div id="progress-bar" class="progress-bar"></div></div></div></div>
+    <div id="loader">
+        <div class="loader-content">
+            <div class="loader-logo">GREY FRONTIER</div>
+            <p class="mt-2 text-sm text-gray-400">正在建立安全连接...</p>
+            <div class="w-32 h-0.5 bg-gray-700 mx-auto mt-4"><div id="progress-bar" class="progress-bar"></div></div>
+        </div>
+        <p class="absolute bottom-4 w-full text-center text-xs text-gray-400">长时间加载请使用VPN访问</p>
+    </div>
     <div class="overlay-effects"><div class="static-noise"></div><div class="scanline"></div></div>
 
     <nav id="main-nav" class="fixed top-0 left-0 w-full z-50">
@@ -895,8 +909,8 @@
                         gsap.to(sections[0], { autoAlpha: 1 });
                         const heroContent = sections[0].querySelector('.section-content-wrapper');
                         gsap.from(heroContent.children, { y: 50, opacity: 0, duration: 1, ease: "power3.out", stagger: 0.2 });
-                        gsap.to("#hero-red-line", { width: '100%', duration: 3, ease: 'power1.inOut', delay: 0.5 });
                     }
+                    gsap.to("#hero-red-line", { width: '100%', duration: 3, ease: 'power1.inOut', delay: 0.5 });
                     updateNavHighlight(0);
                 }});
             }, 1600);
